@@ -1,5 +1,4 @@
 name: Build Typstwriter EXE
-
 on:
   push:
     branches: [ main ]
@@ -8,7 +7,6 @@ on:
 jobs:
   build:
     runs-on: windows-latest
-
     steps:
       - name: Checkout build repo
         uses: actions/checkout@v4
@@ -22,7 +20,8 @@ jobs:
           python-version: "3.10"
 
       - name: Install build tools
-        run: pip install flit nuitka
+        run: |
+          pip install flit "nuitka[onefile]" zstandard
 
       - name: Install dependencies via flit
         working-directory: typstwriter
@@ -30,15 +29,13 @@ jobs:
           $env:FLIT_ROOT_INSTALL=1
           flit install --deps=all
 
-      - name: Pre-download Dependency Walker for Nuitka
-        shell: pwsh
+      - name: Download Dependency Walker (pre-approve)
         run: |
-          $dwUrl = "https://dependencywalker.com/depends22_x64.zip"
-          $cacheDir = "$env:APPDATA\Nuitka\Nuitka\Cache\downloads\depends\x86_64"
-          New-Item -ItemType Directory -Force -Path $cacheDir
-          $zipPath = "$cacheDir\depends.zip"
-          Invoke-WebRequest -Uri $dwUrl -OutFile $zipPath
-          Expand-Archive -Path $zipPath -DestinationPath $cacheDir -Force
+          python -m nuitka --version
+          $depwalker_dir = "$env:APPDATA\Nuitka\Nuitka\Cache\downloads\depends\x86_64"
+          New-Item -ItemType Directory -Force -Path $depwalker_dir
+          curl -L "https://www.dependencywalker.com/depends22_x64.zip" -o depends.zip
+          tar -xf depends.zip -C $depwalker_dir
 
       - name: Build Typstwriter EXE with Nuitka
         working-directory: typstwriter
