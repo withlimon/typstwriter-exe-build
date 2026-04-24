@@ -42,6 +42,7 @@ jobs:
         run: |
           python -m nuitka `
             --onefile `
+            --assume-yes-for-downloads `
             --windows-disable-console `
             --enable-plugin=pyside6 `
             --include-package=qtpy `
