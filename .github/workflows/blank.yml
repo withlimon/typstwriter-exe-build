@@ -51,17 +51,8 @@ jobs:
             --include-package=qt_themes `
             typstwriter/typstwriter.py
 
-      - name: Download Typst compiler
-        run: |
-          curl -L https://github.com/typst/typst/releases/latest/download/typst-x86_64-pc-windows-msvc.zip -o typst.zip
-          tar -xf typst.zip typst.exe
-
-      - name: Package EXE + compiler
-        run: |
-          powershell Compress-Archive -Path typstwriter/typstwriter.exe,typst.exe -DestinationPath typstwriter_windows.zip
-
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: typstwriter-windows
-          path: typstwriter_windows.zip
+          path: typstwriter/typstwriter.exe
