@@ -1,0 +1,54 @@
+name: Build Typstwriter EXE
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: Install build tools
+        run: |
+          pip install flit nuitka
+
+      - name: Install dependencies via flit
+        run: |
+          set FLIT_ROOT_INSTALL=1
+          flit install --deps=all
+
+      - name: Build Typstwriter EXE with Nuitka
+        run: |
+          python -m nuitka ^
+            --onefile ^
+            --windows-disable-console ^
+            --enable-plugin=pyside6 ^
+            --include-package=qtpy ^
+            --include-package=pygments ^
+            --include-package=platformdirs ^
+            --include-package=qt_themes ^
+            typstwriter/__main__.py
+
+      - name: Download Typst compiler
+        run: |
+          curl -L https://github.com/typst/typst/releases/latest/download/typst-x86_64-pc-windows-msvc.zip -o typst.zip
+          tar -xf typst.zip typst.exe
+
+      - name: Package EXE + compiler
+        run: |
+          powershell Compress-Archive -Path typstwriter.exe,typst.exe -DestinationPath typstwriter_windows.zip
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: typstwriter-windows
+          path: typstwriter_windows.zip
