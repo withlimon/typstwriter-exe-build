@@ -9,8 +9,11 @@ jobs:
   build:
     runs-on: windows-latest
     steps:
-      - name: Checkout repository
+      - name: Checkout build repo
         uses: actions/checkout@v4
+
+      - name: Clone Typstwriter source
+        run: git clone https://github.com/Bzero/typstwriter.git
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -22,20 +25,22 @@ jobs:
           pip install flit nuitka
 
       - name: Install dependencies via flit
+        working-directory: typstwriter
         run: |
-          set FLIT_ROOT_INSTALL=1
+          $env:FLIT_ROOT_INSTALL=1
           flit install --deps=all
 
       - name: Build Typstwriter EXE with Nuitka
+        working-directory: typstwriter
         run: |
-          python -m nuitka ^
-            --onefile ^
-            --windows-disable-console ^
-            --enable-plugin=pyside6 ^
-            --include-package=qtpy ^
-            --include-package=pygments ^
-            --include-package=platformdirs ^
-            --include-package=qt_themes ^
+          python -m nuitka `
+            --onefile `
+            --windows-disable-console `
+            --enable-plugin=pyside6 `
+            --include-package=qtpy `
+            --include-package=pygments `
+            --include-package=platformdirs `
+            --include-package=qt_themes `
             typstwriter/__main__.py
 
       - name: Download Typst compiler
@@ -45,7 +50,7 @@ jobs:
 
       - name: Package EXE + compiler
         run: |
-          powershell Compress-Archive -Path typstwriter.exe,typst.exe -DestinationPath typstwriter_windows.zip
+          powershell Compress-Archive -Path typstwriter/typstwriter.exe,typst.exe -DestinationPath typstwriter_windows.zip
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
