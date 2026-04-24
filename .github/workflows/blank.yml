@@ -41,7 +41,7 @@ jobs:
             --include-package=pygments `
             --include-package=platformdirs `
             --include-package=qt_themes `
-            typstwriter/__main__.py
+            typstwriter/typstwriter.py
 
       - name: Download Typst compiler
         run: |
